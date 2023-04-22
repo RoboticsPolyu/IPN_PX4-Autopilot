@@ -55,6 +55,7 @@
 #include <uORB/Subscription.hpp>
 #include <uORB/SubscriptionMultiArray.hpp>
 #include <uORB/topics/vehicle_status.h>
+#include <uORB/topics/force_moments.h>
 
 #include "streams/ACTUATOR_OUTPUT_STATUS.hpp"
 #include "streams/ALTITUDE.hpp"
@@ -143,6 +144,69 @@
 # include "streams/UAVIONIX_ADSB_OUT_DYNAMIC.hpp"
 # include "streams/UTM_GLOBAL_POSITION.hpp"
 #endif // !CONSTRAINED_FLASH
+
+class MavlinkStreamForceMoments : public MavlinkStream
+{
+public:
+    const char *get_name() const
+    {
+        return MavlinkStreamForceMoments::get_name_static();
+    }
+    static const char *get_name_static()
+    {
+        return "FORCE_MOMENTS";
+    }
+    static uint16_t get_id_static()
+    {
+        return MAVLINK_MSG_ID_FORCE_MOMENTS;
+    }
+    uint16_t get_id()
+    {
+        return get_id_static();
+    }
+    static MavlinkStream *new_instance(Mavlink *mavlink)
+    {
+        return new MavlinkStreamForceMoments(mavlink);
+    }
+    unsigned get_size()
+    {
+        return MAVLINK_MSG_ID_FORCE_MOMENTS_LEN  + MAVLINK_NUM_NON_PAYLOAD_BYTES;
+    }
+
+private:
+    uORB::Subscription _sub{ORB_ID(force_moments)};
+
+    /* do not allow top copying this class */
+    MavlinkStreamForceMoments(MavlinkStreamForceMoments &);
+    MavlinkStreamForceMoments& operator = (const MavlinkStreamForceMoments &);
+
+protected:
+    explicit MavlinkStreamForceMoments(Mavlink *mavlink) : MavlinkStream(mavlink)
+    {}
+
+    bool send() override
+    {
+        struct force_moments_s _force_moments;    //make sure force_moments_s is the definition of your uORB topic
+
+        if (_sub.update(&_force_moments)) {
+            mavlink_force_moments_t _msg_force_moments;  //make sure mavlink_force_moments_t is the definition of your custom MAVLink message
+
+            _msg_force_moments.timestamp = _force_moments.timestamp;
+            _msg_force_moments.force_x = _force_moments.fxyz[0];
+            _msg_force_moments.force_y  = _force_moments.fxyz[1];
+            _msg_force_moments.force_z = _force_moments.fxyz[2];
+            _msg_force_moments.moments_x = _force_moments.mxyz[0];
+	    _msg_force_moments.moments_y = _force_moments.mxyz[1];
+            _msg_force_moments.moments_z = _force_moments.mxyz[2];
+
+	    mavlink_msg_force_moments_send_struct(_mavlink->get_channel(), &_msg_force_moments);
+
+            return true;
+        }
+
+        return false;
+    }
+};
 
 // ensure PX4 rotation enum and MAV_SENSOR_ROTATION align
 static_assert(MAV_SENSOR_ROTATION_NONE == static_cast<MAV_SENSOR_ORIENTATION>(ROTATION_NONE),
@@ -481,8 +545,9 @@ static const StreamListItem streams_list[] = {
 	create_stream_list_item<MavlinkStreamUavionixADSBOutCfg>(),
 #endif // UAVIONIX_ADSB_OUT_CFG_HPP
 #if defined(UAVIONIX_ADSB_OUT_DYNAMIC_HPP)
-	create_stream_list_item<MavlinkStreamUavionixADSBOutDynamic>()
+	create_stream_list_item<MavlinkStreamUavionixADSBOutDynamic>(),
 #endif // UAVIONIX_ADSB_OUT_DYNAMIC_HPP
+	create_stream_list_item<MavlinkStreamForceMoments>()
 };
 
 const char *get_stream_name(const uint16_t msg_id)

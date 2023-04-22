@@ -226,6 +226,9 @@ MulticopterRateControl::Run()
 			vehicle_thrust_setpoint_s vehicle_thrust_setpoint{};
 			vehicle_torque_setpoint_s vehicle_torque_setpoint{};
 
+			// publish force and moments
+			force_moments_s           force_moments_setpoint{};
+
 			_thrust_setpoint.copyTo(vehicle_thrust_setpoint.xyz);
 			vehicle_torque_setpoint.xyz[0] = PX4_ISFINITE(att_control(0)) ? att_control(0) : 0.f;
 			vehicle_torque_setpoint.xyz[1] = PX4_ISFINITE(att_control(1)) ? att_control(1) : 0.f;
@@ -256,6 +259,15 @@ MulticopterRateControl::Run()
 			vehicle_torque_setpoint.timestamp_sample = angular_velocity.timestamp_sample;
 			vehicle_torque_setpoint.timestamp = hrt_absolute_time();
 			_vehicle_torque_setpoint_pub.publish(vehicle_torque_setpoint);
+
+			force_moments_setpoint.mxyz[0] = vehicle_torque_setpoint.xyz[0];
+			force_moments_setpoint.mxyz[1] = vehicle_torque_setpoint.xyz[1];
+			force_moments_setpoint.mxyz[2] = vehicle_torque_setpoint.xyz[2];
+			force_moments_setpoint.fxyz[0] = vehicle_thrust_setpoint.xyz[0];
+			force_moments_setpoint.fxyz[1] = vehicle_thrust_setpoint.xyz[1];
+			force_moments_setpoint.fxyz[2] = vehicle_thrust_setpoint.xyz[2];
+			force_moments_setpoint.timestamp  = hrt_absolute_time();
+			_force_moments_pub.publish(force_moments_setpoint);
 
 			updateActuatorControlsStatus(vehicle_torque_setpoint, dt);
 
