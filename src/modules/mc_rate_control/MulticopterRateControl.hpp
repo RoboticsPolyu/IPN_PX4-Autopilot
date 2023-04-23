@@ -49,7 +49,7 @@
 #include <uORB/topics/actuator_controls_status.h>
 #include <uORB/topics/battery_status.h>
 #include <uORB/topics/control_allocator_status.h>
-#include <uORB/topics/force_moments.h>
+#include <uORB/topics/trust_moments.h>
 #include <uORB/topics/manual_control_setpoint.h>
 #include <uORB/topics/parameter_update.h>
 #include <uORB/topics/rate_ctrl_status.h>
@@ -106,7 +106,7 @@ private:
 
 	uORB::Publication<actuator_controls_status_s>	_actuator_controls_status_pub{ORB_ID(actuator_controls_status_0)};
 	uORB::PublicationMulti<rate_ctrl_status_s>	_controller_status_pub{ORB_ID(rate_ctrl_status)};
-	uORB::Publication<force_moments_s>              _force_moments_pub{ORB_ID(force_moments)};
+	uORB::Publication<trust_moments_s>              _trust_moments_pub{ORB_ID(trust_moments)};
 	uORB::Publication<vehicle_rates_setpoint_s>	_vehicle_rates_setpoint_pub{ORB_ID(vehicle_rates_setpoint)};
 	uORB::Publication<vehicle_torque_setpoint_s>	_vehicle_torque_setpoint_pub;
 	uORB::Publication<vehicle_thrust_setpoint_s>	_vehicle_thrust_setpoint_pub;
