@@ -1,0 +1,12 @@
+menuconfig MODULES_MC_TM_CONTROL
+	bool "mc_tm_control"
+	default n
+	---help---
+		Enable support for mc_tm_control
+
+menuconfig USER_MC_TM_CONTROL
+	bool "mc_tm_control running as userspace module"
+	default y
+	depends on BOARD_PROTECTED && MODULES_MC_TM_CONTROL
+	---help---
+		Put mc_tm_control in userspace memory

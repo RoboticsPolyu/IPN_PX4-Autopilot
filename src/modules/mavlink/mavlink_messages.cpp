@@ -55,6 +55,8 @@
 #include <uORB/Subscription.hpp>
 #include <uORB/SubscriptionMultiArray.hpp>
 #include <uORB/topics/vehicle_status.h>
+#include <uORB/topics/actuator_outputs.h>
+#include <uORB/topics/trust_moments.h>
 
 #include "streams/ACTUATOR_CONTROL_TARGET.hpp"
 #include "streams/ACTUATOR_OUTPUT_STATUS.hpp"
@@ -139,6 +141,131 @@
 # include "streams/SMART_BATTERY_INFO.hpp"
 # include "streams/UTM_GLOBAL_POSITION.hpp"
 #endif // !CONSTRAINED_FLASH
+
+class MavlinkStreamTrustMoments : public MavlinkStream
+{
+public:
+    const char *get_name() const
+    {
+        return MavlinkStreamTrustMoments::get_name_static();
+    }
+    static const char *get_name_static()
+    {
+        return "TRUST_MOMENTS";
+    }
+    static uint16_t get_id_static()
+    {
+        return MAVLINK_MSG_ID_TRUST_MOMENTS;
+    }
+    uint16_t get_id()
+    {
+        return get_id_static();
+    }
+    static MavlinkStream *new_instance(Mavlink *mavlink)
+    {
+        return new MavlinkStreamTrustMoments(mavlink);
+    }
+    unsigned get_size()
+    {
+        return MAVLINK_MSG_ID_TRUST_MOMENTS_LEN  + MAVLINK_NUM_NON_PAYLOAD_BYTES;
+    }
+
+private:
+    uORB::Subscription _sub{ORB_ID(trust_moments)};
+
+    /* do not allow top copying this class */
+    MavlinkStreamTrustMoments(MavlinkStreamTrustMoments &);
+    MavlinkStreamTrustMoments& operator = (const MavlinkStreamTrustMoments &);
+
+protected:
+    explicit MavlinkStreamTrustMoments(Mavlink *mavlink) : MavlinkStream(mavlink)
+    {}
+
+    bool send() override
+    {
+        struct trust_moments_s _trust_moments;    //make sure trust_moments_s is the definition of your uORB topic
+
+        if (_sub.update(&_trust_moments)) {
+            mavlink_trust_moments_t _msg_trust_moments;  //make sure mavlink_trust_moments_t is the definition of your custom MAVLink message
+
+            _msg_trust_moments.timestamp = _trust_moments.timestamp;
+            _msg_trust_moments.trust_x = _trust_moments.txyz[0];
+            _msg_trust_moments.trust_y = _trust_moments.txyz[1];
+            _msg_trust_moments.trust_z = _trust_moments.txyz[2];
+            _msg_trust_moments.moments_x = _trust_moments.mxyz[0];
+	    _msg_trust_moments.moments_y = _trust_moments.mxyz[1];
+            _msg_trust_moments.moments_z = _trust_moments.mxyz[2];
+
+	    mavlink_msg_trust_moments_send_struct(_mavlink->get_channel(), &_msg_trust_moments);
+
+            return true;
+        }
+
+        return false;
+    }
+};
+
+class MavlinkStreamActuator : public MavlinkStream
+{
+public:
+    const char *get_name() const
+    {
+        return MavlinkStreamActuator::get_name_static();
+    }
+    static const char *get_name_static()
+    {
+        return "ACTUATOR_OUTPUT";
+    }
+    static uint16_t get_id_static()
+    {
+        return MAVLINK_MSG_ID_ACTUATOR_OUTPUT;
+    }
+    uint16_t get_id()
+    {
+        return get_id_static();
+    }
+    static MavlinkStream *new_instance(Mavlink *mavlink)
+    {
+        return new MavlinkStreamActuator(mavlink);
+    }
+    unsigned get_size()
+    {
+        return MAVLINK_MSG_ID_ACTUATOR_OUTPUT_LEN  + MAVLINK_NUM_NON_PAYLOAD_BYTES;
+    }
+
+private:
+    uORB::Subscription _sub{ORB_ID(actuator_outputs)};
+
+    /* do not allow top copying this class */
+    MavlinkStreamActuator(MavlinkStreamActuator &);
+    MavlinkStreamActuator& operator = (const MavlinkStreamActuator &);
+
+protected:
+    explicit MavlinkStreamActuator(Mavlink *mavlink) : MavlinkStream(mavlink)
+    {}
+
+    bool send() override
+    {
+        struct actuator_outputs_s _actuators;    //make sure trust_moments_s is the definition of your uORB topic
+
+        if (_sub.update(&_actuators)) {
+            mavlink_actuator_output_t _msg_actuator_output;  //make sure mavlink_trust_moments_t is the definition of your custom MAVLink message
+
+            _msg_actuator_output.timestamp = _actuators.timestamp;
+	    _msg_actuator_output.actuator_size = 4u;
+            _msg_actuator_output.outputs[0] = _actuators.output[0];
+            _msg_actuator_output.outputs[1] = _actuators.output[1];
+            _msg_actuator_output.outputs[2] = _actuators.output[2];
+            _msg_actuator_output.outputs[3] = _actuators.output[3];
+
+	    mavlink_msg_actuator_output_send_struct(_mavlink->get_channel(), &_msg_actuator_output);
+
+            return true;
+        }
+
+        return false;
+    }
+};
 
 // ensure PX4 rotation enum and MAV_SENSOR_ROTATION align
 static_assert(MAV_SENSOR_ROTATION_NONE == static_cast<MAV_SENSOR_ORIENTATION>(ROTATION_NONE),
@@ -559,8 +686,10 @@ static const StreamListItem streams_list[] = {
 	create_stream_list_item<MavlinkStreamEfiStatus>(),
 #endif // EFI_STATUS_HPP
 #if defined(GPS_RTCM_DATA_HPP)
-	create_stream_list_item<MavlinkStreamGPSRTCMData>()
+	create_stream_list_item<MavlinkStreamGPSRTCMData>(),
 #endif // GPS_RTCM_DATA_HPP
+	create_stream_list_item<MavlinkStreamTrustMoments>(),
+	create_stream_list_item<MavlinkStreamActuator>()
 };
 
 const char *get_stream_name(const uint16_t msg_id)

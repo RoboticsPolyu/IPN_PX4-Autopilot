@@ -259,6 +259,7 @@ MulticopterRateControl::Run()
 			if (!_vehicle_status.is_vtol) {
 				publishTorqueSetpoint(att_control, angular_velocity.timestamp_sample);
 				publishThrustSetpoint(angular_velocity.timestamp_sample);
+				_trust_moments_pub.publish(_trust_moments_setpoint);
 			}
 
 			// scale effort by battery status if enabled
@@ -305,6 +306,11 @@ void MulticopterRateControl::publishTorqueSetpoint(const Vector3f &torque_sp, co
 	v_torque_sp.xyz[1] = (PX4_ISFINITE(torque_sp(1))) ? torque_sp(1) : 0.0f;
 	v_torque_sp.xyz[2] = (PX4_ISFINITE(torque_sp(2))) ? torque_sp(2) : 0.0f;
 
+	_trust_moments_setpoint.mxyz[0] = v_torque_sp.xyz[0];
+	_trust_moments_setpoint.mxyz[1] = v_torque_sp.xyz[1];
+	_trust_moments_setpoint.mxyz[2] = v_torque_sp.xyz[2];
+	_trust_moments_setpoint.timestamp  = timestamp_sample;
+
 	_vehicle_torque_setpoint_pub.publish(v_torque_sp);
 }
 
@@ -316,6 +322,10 @@ void MulticopterRateControl::publishThrustSetpoint(const hrt_abstime &timestamp_
 	v_thrust_sp.xyz[0] = 0.0f;
 	v_thrust_sp.xyz[1] = 0.0f;
 	v_thrust_sp.xyz[2] = PX4_ISFINITE(_thrust_sp) ? -_thrust_sp : 0.0f; // Z is Down
+
+	_trust_moments_setpoint.txyz[0] = v_thrust_sp.xyz[0];
+	_trust_moments_setpoint.txyz[1] = v_thrust_sp.xyz[1];
+	_trust_moments_setpoint.txyz[2] = v_thrust_sp.xyz[2];
 
 	_vehicle_thrust_setpoint_pub.publish(v_thrust_sp);
 }
