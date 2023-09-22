@@ -12,7 +12,6 @@
 #
 
 . ${R}etc/init.d/rc.mc_defaults
-# . ${R}etc/init.d/rc.mc_tm_ctrl
 
 param set-default IMU_GYRO_CUTOFF 30
 

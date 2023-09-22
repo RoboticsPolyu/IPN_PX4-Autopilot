@@ -6,9 +6,9 @@
 #
 
 #
-# Start force moments control
+# Start mpc control
 #
-mc_tm_control start
+mc_mpc_control start
 mc_rate_control stop
 
 #

@@ -45,6 +45,7 @@ px4_add_romfs_files(
 	rc.logging
 	rc.mc_apps
 	rc.mc_defaults
+	#rc.mc_mpc_ctrl
 	rcS
 	rc.sensors
 	rc.thermal_cal
@@ -55,5 +56,5 @@ px4_add_romfs_files(
 	rc.vehicle_setup
 	rc.vtol_apps
 	rc.vtol_defaults
-	rc.mc_tm_ctrl
+
 )
