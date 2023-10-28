@@ -1014,9 +1014,11 @@ MixingOutput::setAndPublishActuatorOutputs(unsigned num_outputs, actuator_output
 		actuator_outputs.output[i] = _current_output_value[i];
 	}
 
-	hrt_abstime timestamp_sample;
-	_functions[0]->getLatestSampleTimestamp(timestamp_sample); // hrt_absolute_time();
-	actuator_outputs.timestamp = timestamp_sample;
+	actuator_outputs.timestamp = hrt_absolute_time();
+
+	// hrt_abstime timestamp_sample;
+	// _functions[0]->getLatestSampleTimestamp(timestamp_sample); // hrt_absolute_time();
+	// actuator_outputs.timestamp = timestamp_sample;
 
 	_outputs_pub.publish(actuator_outputs);
 }

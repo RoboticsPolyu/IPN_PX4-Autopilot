@@ -7,7 +7,7 @@ px4_add_module(
 	COMPILE_FLAGS
 	SRCS
 		mc_mpc_control.cpp
-		mc_mpc_control.cpp
+		mc_mpc_control.hpp
 	DEPENDS
 		mathlib
 	)

@@ -114,6 +114,7 @@ int can_devinit(void)
 	/* Check if we have already initialized */
 
 	if (!initialized) {
+
 		/* Call stm32_caninitialize() to get an instance of the CAN interface */
 
 		can = stm32_caninitialize(CAN_PORT);

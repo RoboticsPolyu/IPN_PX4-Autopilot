@@ -56,7 +56,7 @@ TattuCan::TattuCan() :
 TattuCan::~TattuCan()
 {
 }
-
+aaa
 void TattuCan::Run()
 {
 	if (should_exit()) {
